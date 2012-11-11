@@ -1,0 +1,212 @@
+<html>
+    <head>
+        <title>deviceMotionEvents demo</title>
+
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+        <style>
+            body {
+                -webkit-user-select: none;
+                background-color: #eee;
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: 20px;
+            }
+
+            .graph {
+                width:95%;
+                height:200px;
+                margin:15px;
+            }
+        </style>
+
+        <script src='http://code.jquery.com/jquery-1.7.2.min.js'></script>
+        <script src='/jquery.flot/jquery.flot.js'></script>
+
+        <script src='/socket.io/socket.io.js'></script>
+
+        <script> 
+            var isMobile = {
+                Android: function() {
+                    return navigator.userAgent.match(/Android/i);
+                },
+                BlackBerry: function() {
+                    return navigator.userAgent.match(/BlackBerry/i);
+                },
+                iOS: function() {
+                    return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+                },
+                Opera: function() {
+                    return navigator.userAgent.match(/Opera Mini/i);
+                },
+                Windows: function() {
+                    return navigator.userAgent.match(/IEMobile/i);
+                },
+                any: function() {
+                    return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows());
+                }
+            };
+        </script>
+
+        <script>
+            var socket = io.connect('/');
+
+            $(function(){
+                // setup plot
+                var data = {x:[],
+                            y:[],
+                            z:[],
+                            x_ig:[],
+                            y_ig:[],
+                            z_ig:[],
+                            alpha:[],
+                            beta:[],
+                            gamma:[]};
+                
+                var options = {
+                    series: { shadowSize: 0 }, // drawing is faster without shadows
+                    //yaxis: { min: -10, max: 10 },
+                    xaxis: { show: false }
+                };
+
+                var windowSize = 200;
+
+                socket.on('update_motionEvent', function(motion) {
+                    //console.log(motion)
+
+                    /******** SET THE UI... there's probably a better way to do this, but whatevs... ********/
+
+                    //acceleration
+                    $("#accelX").text(".x: " + motion.acceleration.x)
+                    data.x.push(motion.acceleration.x);
+                    if (data.x.length > windowSize) {data.x.shift();}
+                    var res = [];
+                    for (var i = 0; i < data.x.length; ++i){res.push([i, data.x[i]])}
+                    $.plot($("#accelX_graph"), [ res ], options);
+                    
+                    $("#accelY").text(".y: " + motion.acceleration.y)
+                    data.y.push(motion.acceleration.y);
+                    if (data.y.length > windowSize) {data.y.shift();}
+                    var res = [];
+                    for (var i = 0; i < data.y.length; ++i){res.push([i, data.y[i]])}
+                    $.plot($("#accelY_graph"), [ res ], options);
+
+                    $("#accelZ").text(".z: " + motion.acceleration.z)
+                    data.z.push(motion.acceleration.z);
+                    if (data.z.length > windowSize) {data.z.shift();}
+                    var res = [];
+                    for (var i = 0; i < data.z.length; ++i){res.push([i, data.z[i]])}
+                    $.plot($("#accelZ_graph"), [ res ], options);
+
+                    //accelerationIncludingGravity
+                    $("#accelX_ig").text(".x: " + motion.accelerationIncludingGravity.x)
+                    data.x_ig.push(motion.accelerationIncludingGravity.x);
+                    if (data.x_ig.length > windowSize) {data.x_ig.shift();}
+                    var res = [];
+                    for (var i = 0; i < data.x_ig.length; ++i){res.push([i, data.x_ig[i]])}
+                    $.plot($("#accelX_ig_graph"), [ res ], options);
+
+                    $("#accelY_ig").text(".y: " + motion.accelerationIncludingGravity.y)
+                    data.y_ig.push(motion.accelerationIncludingGravity.y);
+                    if (data.y_ig.length > windowSize) {data.y_ig.shift();}
+                    var res = [];
+                    for (var i = 0; i < data.y_ig.length; ++i){res.push([i, data.y_ig[i]])}
+                    $.plot($("#accelY_ig_graph"), [ res ], options);
+
+                    $("#accelZ_ig").text(".z: " + motion.accelerationIncludingGravity.z)
+                    data.z_ig.push(motion.accelerationIncludingGravity.z);
+                    if (data.z_ig.length > windowSize) {data.z_ig.shift();}
+                    var res = [];
+                    for (var i = 0; i < data.z_ig.length; ++i){res.push([i, data.z_ig[i]])}
+                    $.plot($("#accelZ_ig_graph"), [ res ], options);
+
+                    //rotationRate
+                    $("#rr_alpha").text(".alpha: " + motion.rotationRate.alpha + "(yaw)")
+                    data.alpha.push(motion.rotationRate.alpha);
+                    if (data.alpha.length > windowSize) {data.alpha.shift();}
+                    var res = [];
+                    for (var i = 0; i < data.alpha.length; ++i){res.push([i, data.alpha[i]])}
+                    $.plot($("#rr_alpha_graph"), [ res ], options);
+
+                    $("#rr_beta").text(".beta: " + motion.rotationRate.beta + "(pitch)")
+                    data.beta.push(motion.rotationRate.beta);
+                    if (data.beta.length > windowSize) {data.beta.shift();}
+                    var res = [];
+                    for (var i = 0; i < data.beta.length; ++i){res.push([i, data.beta[i]])}
+                    $.plot($("#rr_beta_graph"), [ res ], options);
+
+                    $("#rr_gamma").text(".gamma: " + motion.rotationRate.gamma + "(roll)")
+                    data.gamma.push(motion.rotationRate.gamma);
+                    if (data.gamma.length > windowSize) {data.gamma.shift();}
+                    var res = [];
+                    for (var i = 0; i < data.gamma.length; ++i){res.push([i, data.gamma[i]])}
+                    $.plot($("#rr_gamma_graph"), [ res ], options);
+                })
+
+                var sampleRate = 2, current = 0;
+
+                function deviceMotionHandler(motion) {
+                    current++;
+                    if (current%sampleRate != 0) {return;} 
+
+                    var motionEvent = {
+                        "interval": motion.interval,
+                        "acceleration": {
+                            "x": motion.acceleration.x,
+                            "y": motion.acceleration.y,
+                            "z": motion.acceleration.z
+                        }, "accelerationIncludingGravity": { 
+                            "x": motion.accelerationIncludingGravity.x,
+                            "y": motion.accelerationIncludingGravity.y,
+                            "z": motion.accelerationIncludingGravity.z
+                        }, "rotationRate": {
+                            "alpha": motion.rotationRate.gamma,
+                            "beta": motion.rotationRate.alpha,
+                            "gamma": motion.rotationRate.beta,
+                        }    
+                    }  
+
+                    socket.emit('motionEvent', motionEvent);
+                }
+
+                if (window.DeviceMotionEvent) {
+                    window.addEventListener('devicemotion', deviceMotionHandler, false);
+                } else {
+                    alert("DeviceMotionEvents are not supported on this device.");
+                }
+            });
+        </script>
+
+    </head>
+    <body>
+        <h2>event.acceleration <i>- requires accelerometer AND gyroscope</i></h2>
+        <span id="accelX"></span>
+        <div id="accelX_graph" class="graph"></div>
+
+        <br /><span id="accelY"></span>
+        <div id="accelY_graph" class="graph"></div>
+
+        <br /><span id="accelZ"></span>
+        <div id="accelZ_graph" class="graph"></div>
+
+        <h2>event.accelerationIncludingGravity <i>- requires accelerometer</i></h2>
+        <span id="accelX_ig"></span>
+        <div id="accelX_ig_graph" class="graph"></div>
+
+        <br /><span id="accelY_ig"></span>
+        <div id="accelY_ig_graph" class="graph"></div>
+
+        <br /><span id="accelZ_ig"></span>
+        <div id="accelZ_ig_graph" class="graph"></div>
+
+        <h2>event.rotationRate <i>- requires gyroscope</i></h2>
+        <span id="rr_alpha"></span>
+        <div id="rr_alpha_graph" class="graph"></div>
+
+        <br /><span id="rr_beta"></span>
+        <div id="rr_beta_graph" class="graph"></div>
+
+        <br /><span id="rr_gamma"></span>
+        <div id="rr_gamma_graph" class="graph"></div>
+    </body>
+</html>
